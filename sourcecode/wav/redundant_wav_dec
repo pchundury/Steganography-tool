@@ -1,0 +1,137 @@
+//Redundant Wave decoding
+#include<stdio.h>
+#include"mytime.h"
+#include<IO.h>
+#include<fcntl.h>
+#include<conio.h>
+#include<string.h>
+#include"mymath.h"
+
+
+ void main()
+  {
+   char 	 newtxt[11],copytxt[11] = "copy",stegwav[11],password[11],newcontents[1200];
+   unsigned int  divtxtsiz,modtxtsiz,l;
+   unsigned long txtsiz,filhandlewav;
+   unsigned long i,j,tmp = 0;
+   unsigned char b;
+   ret 		 txtarr,picarr;
+   FILE 	 *fswav,*ftxt,*ftxt1,*st,*ed;
+
+   clrscr();
+   printf("\t\tSteg Riliz-Redundant Encoding-WAV\n");
+   printf("The Stego(wav) File Name w/o extn:");
+   scanf("%s",stegwav);
+   strcat(stegwav,".wav");            //Stego file;
+   if((fswav=fopen(stegwav,"rb"))==NULL)
+     {
+      printf("File error");
+      getch();
+      exit(0);
+     }
+    filhandlewav=open(stegwav,O_CREAT);
+
+   printf("The  Name For the text file w/o extn:");
+   scanf("%s",newtxt);    	      //New Text file
+   strcat(newtxt,".txt");
+   if((ftxt=fopen(newtxt,"wb"))==NULL)
+     {
+      printf("File error");
+      getch();
+      exit(0);
+     }
+    strcat(copytxt,newtxt);
+
+    if((ftxt1=fopen(copytxt,"wb"))==NULL)
+     {
+      printf("File error");
+      getch();
+      exit(0);
+     }
+
+   starttime=gettimenow();
+
+   tmp=(filelength(filhandlewav))/2;//get cover file size
+
+   flushall();
+   fseek(fswav,44,0);
+
+   for(j=0;j<8;j++)
+    {
+     fread(&b,sizeof(b),1,fswav);     // Read Text Size
+     bin(b,picarr);                   // from stego file
+     txtarr[j]=picarr[7];
+     fread(&b,sizeof(b),1,fswav);
+    }
+   divtxtsiz=decnum(txtarr);
+
+
+   for(j=0;j<8;j++)
+    {
+     fread(&b,sizeof(b),1,fswav);     //Read Text Size
+     bin(b,picarr);                   //from stego file
+     txtarr[j]=picarr[7];
+     fread(&b,sizeof(b),1,fswav);
+    }
+   modtxtsiz=decnum(txtarr);
+   txtsiz=((divtxtsiz*255)+modtxtsiz);
+
+   printf("\nText File Size %ld bytes\n",txtsiz);
+
+   for(i=0;i<txtsiz;i++)
+    {
+     for(j=0;j<8;j++)
+      {
+       fread(&b,sizeof(b),1,fswav);   //Read text char by
+       bin(b,picarr);                 //char and write to
+       txtarr[j]=picarr[7];           //new file
+       fread(&b,sizeof(b),1,fswav);
+      }
+     b=dec(txtarr);
+     fwrite(&b,sizeof(b),1,ftxt);
+    }
+
+   fclose(ftxt);
+   flushall();
+
+   fseek(fswav,tmp,0);
+
+    for(i=0;i<txtsiz;i++)
+    {
+     for(j=0;j<8;j++)
+      {
+       fread(&b,sizeof(b),1,fswav);   //Read text char by
+       bin(b,picarr);                 //char and write to
+       txtarr[j]=picarr[7];           //new file
+       fread(&b,sizeof(b),1,fswav);
+      }
+     b=dec(txtarr);
+     fwrite(&b,sizeof(b),1,ftxt1);
+    }
+
+   fclose(ftxt1);
+  fcloseall();
+
+ed=fopen(copytext,"r");
+fgets(newcontents,100,ed);
+printf("\nenter the password\n");
+scanf("%s",password);
+l=strlen(password);
+fclose(ed);
+st=fopen(newtxt,"w");
+
+
+
+for(i=0;i<strlen(newcontents);i++)
+{newcontents[i]=newcontents[i]-password[i%l];
+}
+
+fputs(newcontents,st);  
+
+  endtime=gettimenow();
+  printf("\nExecution Time: %.2fs",(float)(endtime-starttime)/100);
+  printf("\nDone");
+  fire();
+ 
+  getch();
+}
